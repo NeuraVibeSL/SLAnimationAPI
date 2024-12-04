@@ -1,11 +1,14 @@
 bin/
 obj/
+.vs/
 *.user
 *.log
 *.tmp
 *.vscode
-.vs/
 *.bin
 *.suo
 *.cache
 *.dtbcache.v2
+# GitHub Actions
+.github/
+
