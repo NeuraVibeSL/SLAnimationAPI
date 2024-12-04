@@ -4,3 +4,4 @@ obj/
 *.log
 *.tmp
 *.vscode
+.vs/
