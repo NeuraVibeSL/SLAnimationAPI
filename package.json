@@ -1,0 +1,10 @@
+{
+  "name": "SLAnimationAPI",
+  "version": "1.0.0",
+  "description": "API pour générer des animations .anim",
+  "main": "server.js",
+  "scripts": {
+    "start": "dotnet run --no-build --urls http://*:3000"
+  },
+  "dependencies": {}
+}

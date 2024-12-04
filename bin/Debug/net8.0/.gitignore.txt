@@ -1,0 +1,18 @@
+# Visual Studio files
+.vs/
+*.user
+*.suo
+
+# Build results
+bin/
+obj/
+out/
+Debug/
+Release/
+
+# Logs
+*.log
+
+# Other
+*.idea/
+*.DS_Store

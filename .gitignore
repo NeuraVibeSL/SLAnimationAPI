@@ -5,3 +5,7 @@ obj/
 *.tmp
 *.vscode
 .vs/
+*.bin
+*.suo
+*.cache
+*.dtbcache.v2
