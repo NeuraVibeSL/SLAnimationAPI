@@ -1,7 +1,22 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+# Use the official .NET SDK image for building
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
-EXPOSE 3000
 
-COPY . /app
+# Copy all files to the container
+COPY . .
 
+# Restore dependencies
+RUN dotnet restore
+
+# Build the application
+RUN dotnet publish -c Release -o out
+
+# Use the official runtime image for deployment
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+
+# Copy the published files
+COPY --from=build /app/out .
+
+# Set the entry point
 ENTRYPOINT ["dotnet", "SLAnimationAPI.dll"]
