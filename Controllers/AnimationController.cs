@@ -30,6 +30,9 @@ namespace SLAnimationAPI.Controllers
         [HttpGet("generate")]
         public IActionResult GenerateAnimation([FromQuery] string activeAnimations)
         {
+            Request.Body = Stream.Null;
+            _logger.LogInformation($"Requête reçue : activeAnimations={activeAnimations}");
+            
             if (string.IsNullOrWhiteSpace(activeAnimations))
             {
                 _logger.LogWarning("activeAnimations est vide ou nul.");
