@@ -26,6 +26,10 @@ app.Use(async (context, next) =>
 {
     try
     {
+        if (context.Request.Method == "GET")
+        {
+            context.Request.Headers.Remove("Content-Type");
+        }
         await next.Invoke();
     }
     catch (Exception ex)
@@ -33,16 +37,6 @@ app.Use(async (context, next) =>
         Console.WriteLine($"Unhandled exception: {ex.Message}");
         throw;
     }
-});
-
-// Middleware pour ajuster les en-têtes
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "GET")
-    {
-        context.Request.Headers.Remove("Content-Type");
-    }
-    await next.Invoke();
 });
 
 // Tester l'API avec un endpoint simple
