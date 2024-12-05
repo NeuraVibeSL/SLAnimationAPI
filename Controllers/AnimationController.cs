@@ -29,58 +29,56 @@ namespace SLAnimationAPI.Controllers
         [HttpGet("generate")]
         public IActionResult GenerateAnimation([FromQuery] string activeAnimations)
         {
-            _logger.LogInformation("GenerateAnimation called with: {activeAnimations}", activeAnimations);
-
             if (string.IsNullOrWhiteSpace(activeAnimations))
             {
-                _logger.LogWarning("activeAnimations is empty or null.");
+                _logger.LogWarning("activeAnimations est vide ou nul.");
                 return BadRequest("activeAnimations ne peut pas être vide.");
             }
-
+        
+            // Valider le format de activeAnimations
+            if (!IsValidAnimationFormat(activeAnimations))
+            {
+                _logger.LogWarning("Format de activeAnimations invalide : {activeAnimations}", activeAnimations);
+                return BadRequest("Le format de activeAnimations est invalide.");
+            }
+        
             // Charger la base de données
-            Dictionary<string, string> animations;
-            try
-            {
-                animations = ReadDatabase(DatabasePath);
-                _logger.LogInformation($"Base de données chargée avec {animations.Count} animations.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Erreur lors de la lecture de la base de données : {ex.Message}");
-                return StatusCode(500, "Erreur lors de la lecture de la base de données.");
-            }
-
-            // Diviser les animations actives
+            var animations = ReadDatabase(DatabasePath);
             var activeAnimationList = activeAnimations.Split(',')
                 .Select(anim => anim.Trim())
                 .Where(anim => !string.IsNullOrEmpty(anim))
                 .ToList();
-
+        
             if (!activeAnimationList.Any())
             {
-                _logger.LogWarning("Aucune animation valide dans activeAnimations.");
                 return BadRequest("Aucune animation valide dans activeAnimations.");
             }
-
-            // Générer le fichier
+        
             string outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedAnimation.anim");
+        
             try
             {
                 MergeAnimations(animations, outputPath, activeAnimationList);
-
+        
                 // Lire le fichier généré
                 var fileBytes = System.IO.File.ReadAllBytes(outputPath);
-                _logger.LogInformation($"Fichier généré avec succès à : {outputPath}");
-
-                // Retourner le fichier au format octet-stream
+        
                 return File(fileBytes, "application/octet-stream", "GeneratedAnimation.anim");
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Erreur lors de la génération du fichier : {ex.Message}");
-                return StatusCode(500, $"Erreur interne : {ex.Message}");
+                _logger.LogError(ex, "Erreur lors de la génération de l'animation.");
+                return StatusCode(500, "Erreur interne du serveur.");
             }
         }
+        
+        private bool IsValidAnimationFormat(string activeAnimations)
+        {
+            // Exemple simple : chaque animation doit contenir des lettres, chiffres, et des underscores
+            var regex = new Regex(@"^[a-zA-Z0-9_,\-]+$");
+            return regex.IsMatch(activeAnimations);
+        }
+        
 
         // Lecture de la base de données
         private Dictionary<string, string> ReadDatabase(string path)
