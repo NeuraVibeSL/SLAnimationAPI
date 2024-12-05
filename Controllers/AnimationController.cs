@@ -94,23 +94,23 @@ namespace SLAnimationAPI.Controllers
             }
 
             string[] lines = System.IO.File.ReadAllLines(absolutePath);
-
-            for (int i = 0; i < lines.Length; i++)
+        
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (string.IsNullOrWhiteSpace(lines[i])) continue;
+        
+            string name = lines[i].Trim();
+            string data = i + 1 < lines.Length ? lines[i + 1].Trim() : string.Empty;
+        
+            if (string.IsNullOrWhiteSpace(data))
             {
-                if (string.IsNullOrWhiteSpace(lines[i])) continue;
-
-                string name = lines[i].Trim();
-                string data = i + 1 < lines.Length ? lines[i + 1].Trim() : null;
-
-                if (string.IsNullOrWhiteSpace(data))
-                {
-                    _logger.LogWarning($"Les données hexadécimales manquent pour : {name}");
-                    continue;
-                }
-
-                animations[name] = data;
-                i++; // Passer à la ligne suivante
+                _logger.LogWarning($"Les données hexadécimales manquent pour : {name}");
+                continue;
             }
+        
+            animations[name] = data;
+            i++; // Passer à la ligne suivante
+        }
 
             return animations;
         }
