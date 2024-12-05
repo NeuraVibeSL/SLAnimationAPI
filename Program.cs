@@ -12,6 +12,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddLogging();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -20,6 +21,19 @@ var app = builder.Build();
 
 // Appliquer la politique CORS
 app.UseCors("AllowAllOrigins");
+
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next.Invoke();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Unhandled exception: {ex.Message}");
+        throw;
+    }
+});
 
 // Middleware pour ajuster les en-têtes
 app.Use(async (context, next) =>
