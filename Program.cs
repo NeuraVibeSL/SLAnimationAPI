@@ -18,10 +18,20 @@ builder.Logging.AddConsole();
 
 var app = builder.Build();
 
-app.MapGet("/ping", () => "API is running!");
-
 // Appliquer la politique CORS
 app.UseCors("AllowAllOrigins");
+
+// Middleware pour modifier les en-têtes des requêtes GET
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "GET")
+    {
+        context.Request.Headers.Remove("Content-Type");
+    }
+    await next.Invoke();
+});
+
+app.MapGet("/ping", () => "API is running!");
 
 app.UseRouting();
 
@@ -29,4 +39,4 @@ app.MapControllers();
 
 app.Run();
 
-Console.WriteLine($"Application running on: {string.Join(", ", builder.WebHost.GetSetting("applicationUrl"))}");
+Console.WriteLine($"Application running.");
