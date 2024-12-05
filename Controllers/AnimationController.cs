@@ -28,6 +28,7 @@ namespace SLAnimationAPI.Controllers
 
         // Génération du fichier d'animation
         [HttpGet("generate")]
+        [Consumes("*/*")] 
         public IActionResult GenerateAnimation([FromQuery] string activeAnimations)
         {
             Request.Body = Stream.Null;
