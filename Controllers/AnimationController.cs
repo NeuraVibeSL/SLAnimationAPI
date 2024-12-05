@@ -15,7 +15,7 @@ namespace SLAnimationAPI.Controllers
 
         public AnimationController(ILogger<AnimationController> logger)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         // Vérification de l'état de l'API
