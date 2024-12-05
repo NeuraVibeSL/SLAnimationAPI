@@ -32,6 +32,7 @@ namespace SLAnimationAPI.Controllers
         {
             Request.Body = Stream.Null;
             _logger.LogInformation($"Requête reçue : activeAnimations={activeAnimations}");
+            _logger.LogInformation("En-têtes reçus : {Headers}", string.Join(", ", Request.Headers.Select(h => $"{h.Key}: {h.Value}")));
             
             if (string.IsNullOrWhiteSpace(activeAnimations))
             {
