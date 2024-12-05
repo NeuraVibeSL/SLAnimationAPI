@@ -21,23 +21,26 @@ var app = builder.Build();
 // Appliquer la politique CORS
 app.UseCors("AllowAllOrigins");
 
-// Middleware pour modifier les en-têtes des requêtes GET
+// Middleware pour ajuster les en-têtes
 app.Use(async (context, next) =>
 {
     if (context.Request.Method == "GET")
     {
         context.Request.Headers.Remove("Content-Type");
-        context.Request.ContentType = null; // Désactiver explicitement le contrôle du Content-Type
     }
     await next.Invoke();
 });
 
+// Tester l'API avec un endpoint simple
 app.MapGet("/ping", () => "API is running!");
 
+// Activer le routage
 app.UseRouting();
 
+// Activer les contrôleurs
 app.MapControllers();
 
 app.Run();
 
-Console.WriteLine($"Application running.");
+Console.WriteLine("Application running.");
+
