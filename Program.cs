@@ -27,6 +27,7 @@ app.Use(async (context, next) =>
     if (context.Request.Method == "GET")
     {
         context.Request.Headers.Remove("Content-Type");
+        context.Request.ContentType = null; // Désactiver explicitement le contrôle du Content-Type
     }
     await next.Invoke();
 });
