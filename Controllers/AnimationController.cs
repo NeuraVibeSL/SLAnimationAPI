@@ -31,7 +31,6 @@ namespace SLAnimationAPI.Controllers
         [Consumes("*/*")] 
         public IActionResult GenerateAnimation([FromQuery] string activeAnimations)
         {
-            Request.Body = Stream.Null;
             _logger.LogInformation($"Requête reçue : activeAnimations={activeAnimations}");
             _logger.LogInformation("En-têtes reçus : {Headers}", string.Join(", ", Request.Headers.Select(h => $"{h.Key}: {h.Value}")));
             
