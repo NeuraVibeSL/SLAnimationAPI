@@ -1,9 +1,9 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurer CORS
+// Configurer les services
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins", policy =>
+    options.AddDefaultPolicy(policy =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyHeader()
@@ -12,30 +12,33 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
-builder.Services.AddLogging();
 
+// Configurer les logs
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
+// Construire l'application
 var app = builder.Build();
 
 // Appliquer la politique CORS
-app.UseCors("AllowAllOrigins");
+app.UseCors();
 
+// Middleware global pour capturer les exceptions non gérées
 app.Use(async (context, next) =>
 {
     try
     {
         if (context.Request.Method == "GET")
         {
-            context.Request.Headers.Remove("Content-Type");
+            context.Request.Headers.Remove("Content-Type"); // Optionnel
         }
-        await next.Invoke();
+        await next();
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Unhandled exception: {ex.Message}");
-        throw;
+        app.Logger.LogError(ex, "Unhandled exception: {Message}", ex.Message);
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync("An unexpected error occurred.");
     }
 });
 
@@ -48,7 +51,5 @@ app.UseRouting();
 // Activer les contrôleurs
 app.MapControllers();
 
+// Démarrer l'application
 app.Run();
-
-Console.WriteLine("Application running.");
-
