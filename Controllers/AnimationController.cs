@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,63 +26,79 @@ namespace SLAnimationAPI.Controllers
             return Ok("API is running!");
         }
 
-        // Génération du fichier d'animation
+        // Génération du fichier d'animation via GET
         [HttpGet("generate")]
         public IActionResult GenerateAnimation([FromQuery] string activeAnimations)
         {
-            _logger.LogInformation($"Requête reçue : activeAnimations={activeAnimations}");
-            _logger.LogInformation("En-têtes reçus : {Headers}", string.Join(", ", Request.Headers.Select(h => $"{h.Key}: {h.Value}")));
-            
+            _logger.LogInformation($"Requête reçue (GET) : activeAnimations={activeAnimations}");
+            return HandleAnimationRequest(activeAnimations);
+        }
+
+        // Génération du fichier d'animation via POST
+        [HttpPost("generate")]
+        public IActionResult GenerateAnimationPost([FromBody] AnimationRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.ActiveAnimations))
+            {
+                _logger.LogWarning("Requête POST invalide : activeAnimations est vide ou nul.");
+                return BadRequest(new { error = "activeAnimations cannot be empty." });
+            }
+
+            _logger.LogInformation($"Requête reçue (POST) : activeAnimations={request.ActiveAnimations}");
+            return HandleAnimationRequest(request.ActiveAnimations);
+        }
+
+        // Gestion commune des requêtes GET et POST
+        private IActionResult HandleAnimationRequest(string activeAnimations)
+        {
             if (string.IsNullOrWhiteSpace(activeAnimations))
             {
-                _logger.LogWarning("activeAnimations est vide ou nul.");
-                return BadRequest("activeAnimations ne peut pas être vide.");
+                return BadRequest(new { error = "activeAnimations cannot be empty." });
             }
-        
+
             // Valider le format de activeAnimations
             if (!IsValidAnimationFormat(activeAnimations))
             {
-                _logger.LogWarning("Format de activeAnimations invalide : {activeAnimations}", activeAnimations);
-                return BadRequest("Le format de activeAnimations est invalide.");
+                _logger.LogWarning($"Format de activeAnimations invalide : {activeAnimations}");
+                return BadRequest(new { error = "Invalid format for activeAnimations." });
             }
-        
+
             // Charger la base de données
             var animations = ReadDatabase(DatabasePath);
             var activeAnimationList = activeAnimations.Split(',')
                 .Select(anim => anim.Trim())
                 .Where(anim => !string.IsNullOrEmpty(anim))
                 .ToList();
-        
+
             if (!activeAnimationList.Any())
             {
-                return BadRequest("Aucune animation valide dans activeAnimations.");
+                return BadRequest(new { error = "No valid animations in activeAnimations." });
             }
-        
+
             string outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedAnimation.anim");
-        
+
             try
             {
                 MergeAnimations(animations, outputPath, activeAnimationList);
-        
+
                 // Lire le fichier généré
                 var fileBytes = System.IO.File.ReadAllBytes(outputPath);
-        
+
                 return File(fileBytes, "application/octet-stream", "GeneratedAnimation.anim");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erreur lors de la génération de l'animation.");
-                return StatusCode(500, "Erreur interne du serveur.");
+                return StatusCode(500, new { error = "Internal server error occurred." });
             }
         }
-        
+
         private bool IsValidAnimationFormat(string activeAnimations)
         {
             // Exemple simple : chaque animation doit contenir des lettres, chiffres, et des underscores
             var regex = new Regex(@"^[a-zA-Z0-9_,\-]+$");
             return regex.IsMatch(activeAnimations);
         }
-        
 
         // Lecture de la base de données
         private Dictionary<string, string> ReadDatabase(string path)
@@ -96,23 +112,23 @@ namespace SLAnimationAPI.Controllers
             }
 
             string[] lines = System.IO.File.ReadAllLines(absolutePath);
-        
-        for (int i = 0; i < lines.Length; i++)
-        {
-            if (string.IsNullOrWhiteSpace(lines[i])) continue;
-        
-            string name = lines[i].Trim();
-            string data = i + 1 < lines.Length ? lines[i + 1].Trim() : string.Empty;
-        
-            if (string.IsNullOrWhiteSpace(data))
+
+            for (int i = 0; i < lines.Length; i++)
             {
-                _logger.LogWarning($"Les données hexadécimales manquent pour : {name}");
-                continue;
+                if (string.IsNullOrWhiteSpace(lines[i])) continue;
+
+                string name = lines[i].Trim();
+                string data = i + 1 < lines.Length ? lines[i + 1].Trim() : string.Empty;
+
+                if (string.IsNullOrWhiteSpace(data))
+                {
+                    _logger.LogWarning($"Les données hexadécimales manquent pour : {name}");
+                    continue;
+                }
+
+                animations[name] = data;
+                i++; // Passer à la ligne suivante
             }
-        
-            animations[name] = data;
-            i++; // Passer à la ligne suivante
-        }
 
             return animations;
         }
@@ -198,5 +214,11 @@ namespace SLAnimationAPI.Controllers
                 return System.Array.Empty<byte>();
             }
         }
+
+        public class AnimationRequest
+        {
+            public string ActiveAnimations { get; set; }
+        }
     }
 }
+
